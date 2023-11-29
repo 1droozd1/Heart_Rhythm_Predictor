@@ -4,8 +4,8 @@ plotly
 wfdb
 torch
 scipy
-sklearn
 scikit-learn
 torch
 openai
 python-dotenv
+kaleido  
