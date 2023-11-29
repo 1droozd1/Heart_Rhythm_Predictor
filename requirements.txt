@@ -1,0 +1,11 @@
+boto3
+flask
+plotly
+wfdb
+torch
+scipy
+sklearn
+scikit-learn
+torch
+openai
+python-dotenv

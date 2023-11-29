@@ -1,0 +1,67 @@
+/* Основные стили */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f8ff; /* Голубой фон */
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #007acc; /* Голубой цвет для заголовка */
+    color: #fff;
+    text-align: center;
+    padding: 20px;
+}
+
+h1 {
+    margin: 0;
+}
+
+main {
+    margin: 20px auto;
+    max-width: 600px;
+    padding: 20px;
+}
+
+/* Стили для формы входа */
+.login-section {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+.login-section h2 {
+    color: #007acc;
+}
+
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    background-color: #007acc;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #00598c;
+}
+
+footer {
+    text-align: center;
+    background-color: #007acc;
+    color: #fff;
+    padding: 10px 0;
+}
+
+/* Дополнительные стили здесь */

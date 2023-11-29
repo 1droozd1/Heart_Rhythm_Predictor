@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель управления</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Панель управления</h1>
+    </header>
+    <main>
+        <section class="dashboard-section">
+            <h2>Добро пожаловать!</h2>
+            <p>Вы вошли в панель управления. Здесь вы можете выполнить различные действия.</p>
+            <!-- Добавляем кнопку для загрузки данных в S3 -->
+                <form method="POST" enctype="multipart/form-data" action="{{ url_for('upload_file') }}">
+                    <input type="file" name="files[]" multiple>
+                    <button type="submit">Загрузить данные в S3</button>
+                </form>
+            <a href="{{ url_for('logout') }}">Выйти</a>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 DPP-company</p>
+    </footer>
+</body>
+</html>

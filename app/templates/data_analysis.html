@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ECG Visualization</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+
+<div id="ecg-graph"></div>
+
+<script type="text/javascript">
+    var ecgData = {{ ecg_data | tojson }};
+    
+    // Установите желаемую ширину и высоту графика в пикселях
+    var width = 1200; // Замените этот параметр на нужное значение
+    var height = 800; // Замените этот параметр на нужное значение
+    
+    // Обновите параметры макета для увеличения размера графика
+    ecgData.ecg.layout.width = width;
+    ecgData.ecg.layout.height = height;
+    
+    Plotly.newPlot('ecg-graph', ecgData.ecg.data, ecgData.ecg.layout);
+</script>
+
+</body>
+</html>
