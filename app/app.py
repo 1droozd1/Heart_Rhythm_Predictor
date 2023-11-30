@@ -22,7 +22,10 @@ from model import ECGnet
 
 load_dotenv()
 
-client_open_ai = OpenAI(api_key=os.getenv("API_OPENAI_KEY"))
+client_open_ai = OpenAI(
+    api_key=os.getenv("API_PROXY_KEY"),
+    base_url="https://api.proxyapi.ru/openai/v1"
+    )
 
 model = ECGnet()
 model.load_state_dict(torch.load('./ml_part/model/model.pth', map_location='cpu'))
@@ -48,28 +51,28 @@ def request_chatgpt(image_path):
              дополнительной информации. На графике по оси X каждые 8 миллисекунд соответствуют\
               одной временной единице. Все ответы будут предоставлены строго на русском языке."
             },
-				{
-               "role": "user", 
-     			 "content": 
-                 [
-                    {
-                        "type":"text",
-                        "text":"Опиши фотографию."
-						  },
-                    {
-							 	"type":"image_url",
-                        "image_url": 
-                           {
-                            "url":f"data:image/jpeg;base64,{base64_image}",
-                            "detail": "low"
-									}
-						  }
-                  ]
-				}
-		  ]
-	 )
+			{
+                "role": "user", 
+     		    "content": 
+                    [
+                        {
+                            "type":"text",
+                            "text":"Опиши фотографию."
+			    	    },
+                        {
+			    	    	"type":"image_url",
+                            "image_url": 
+                               {
+                                "url":f"data:image/jpeg;base64,{base64_image}",
+                                "detail": "low"
+			    	    		}
+			    	    }
+                    ]
+			}
+		]
+	)
     print(completion)
-    return completion['choices'][0]['message']['content']
+    return completion.choices[0].message.content
 
 def process_queue():
     while True:
@@ -128,8 +131,8 @@ def process_queue():
 
                 pipline.run_pipeline()
 
-                figure_content = json.load(open(file_name+'.json', 'r'))
-                text_content = 'какой то запрос' #request_chatgpt(file_name+'.jpeg')
+                figure_content = json.load(open(file_name + '.json', 'r'))
+                text_content = request_chatgpt(file_name + '.jpeg')
 
                 result_file = {"ecg": figure_content, "text":text_content}
                 
