@@ -14,7 +14,6 @@ project_dir = os.path.dirname(script_dir)
 sys.path.append(project_dir)
 sys.path.append(project_dir + '/ml_part/model')
 
-from config import *
 import threading, time
 from pipline import BasePipeline, EcgPipelineDataset1D
 from openai import OpenAI
@@ -22,7 +21,8 @@ from dotenv import load_dotenv
 from model import ECGnet
 
 load_dotenv()
-client_open_ai = OpenAI(api_key=API_OPENAI_KEY)
+
+client_open_ai = OpenAI(api_key=os.getenv("API_OPENAI_KEY"))
 
 model = ECGnet()
 model.load_state_dict(torch.load('./ml_part/model/model.pth', map_location='cpu'))
@@ -75,7 +75,7 @@ def process_queue():
     while True:
         # Получаем сообщения из очереди
         messages = client.receive_message(
-            QueueUrl=YMQ_QUEUE_URL,
+            QueueUrl=os.getenv("YMQ_QUEUE_URL"),
             MaxNumberOfMessages=10,
             VisibilityTimeout=60,
             WaitTimeSeconds=10
@@ -90,7 +90,7 @@ def process_queue():
                 presigned_url = s3.generate_presigned_url(
                         ClientMethod='get_object',
                         Params={
-                            'Bucket': BUCKET_NAME,
+                            'Bucket': os.getenv("BUCKET_NAME"),
                             'Key': msg['Body']
                         },
                         ExpiresIn=3600  # Срок действия ссылки в секундах (1 час)
@@ -142,13 +142,13 @@ def process_queue():
                 # Имя, под которым файл будет сохранен в бакете
                 object_name = 'result_' + file_name_s3_without_format + '.json'
 
-                s3.upload_file(file_name, BUCKET_NAME, object_name)
+                s3.upload_file(file_name, os.getenv("BUCKET_NAME"), object_name)
 
                 # Получение ссылки на S3 (файл загруженный пользователем)
                 s3_url = s3.generate_presigned_url(
                     ClientMethod='get_object',
                     Params={
-                        'Bucket': BUCKET_NAME,
+                        'Bucket': os.getenv("BUCKET_NAME"),
                         'Key': object_name
                     },
                     ExpiresIn=3600  # Срок действия ссылки в секундах (1 час)
@@ -165,7 +165,7 @@ def process_queue():
                 )
                 # Удаление задачи из очереди
                 client.delete_message(
-                    QueueUrl=YMQ_QUEUE_URL,
+                    QueueUrl=os.getenv("YMQ_QUEUE_URL"),
                     ReceiptHandle=msg.get('ReceiptHandle')
                 )
                 # Удаляем временную директорию
@@ -181,7 +181,7 @@ def waiting_answers(file_name):
         presigned_url = s3.generate_presigned_url(
             ClientMethod='get_object',
             Params={
-                'Bucket': BUCKET_NAME,
+                'Bucket': os.getenv("BUCKET_NAME"),
                 'Key': file_name_result
             },
             ExpiresIn=3600  # Срок действия ссылки в секундах (1 час)
@@ -196,24 +196,24 @@ def waiting_answers(file_name):
 
 # Инициализация Flask приложения
 app = Flask(__name__)
-app.secret_key = SECRET_KEY # Установка секретного ключа для сессии
+app.secret_key = os.getenv("SECRET_KEY") # Установка секретного ключа для сессии
 
 # Настройка сессии AWS для работы с Yandex S3
 boto3_session = boto3.Session(
-    aws_access_key_id=AWS_PUBLIC_KEY,
-    aws_secret_access_key=AWS_SECRET_KEY,
+    aws_access_key_id=os.getenv("AWS_PUBLIC_KEY"),
+    aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
     region_name="ru-central1",
 )
 
 # Клиент для работы с S3
 s3 = boto3_session.client(
-    "s3", endpoint_url=ENDPOINT)
+    "s3", endpoint_url=os.getenv("ENDPOINT"))
 
 # Клиент для работы с очередями сообщений YMQ
 client = boto3.client(
     service_name='sqs',
-    aws_access_key_id=AWS_PUBLIC_KEY,
-    aws_secret_access_key=AWS_SECRET_KEY,
+    aws_access_key_id=os.getenv("AWS_PUBLIC_KEY"),
+    aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
     endpoint_url='https://message-queue.api.cloud.yandex.net',
     region_name='ru-central1'
 )
@@ -221,10 +221,10 @@ client = boto3.client(
 # Настройка ресурса DynamoDB для работы с базой данных
 dynamodb = boto3.resource(
     'dynamodb',
-    endpoint_url = USER_STORAGE_URL,
+    endpoint_url = os.getenv("USER_STORAGE_URL"),
     region_name = 'ru-central1',
-    aws_access_key_id =AWS_PUBLIC_KEY, 
-    aws_secret_access_key =AWS_SECRET_KEY
+    aws_access_key_id =os.getenv("AWS_PUBLIC_KEY"), 
+    aws_secret_access_key =os.getenv("AWS_SECRET_KEY")
 )
 
 USERS = dynamodb.Table('users') # Таблица пользователей в DynamoDB
@@ -316,7 +316,7 @@ def upload_to_s3(file, username_session):
         3) добавляем файл в Yandex S3
     '''
     filename = secure_filename(username_session + '_' + f'{datetime.now().strftime("%Y-%m-%d-%H:%M:%S")}.zip')
-    s3.upload_fileobj(file, BUCKET_NAME, filename)
+    s3.upload_fileobj(file, os.getenv("BUCKET_NAME"), filename)
     return filename
 
 # Функция для добавления информации о файле в DynamoDB
@@ -378,7 +378,7 @@ def upload_file():
     s3_url = s3.generate_presigned_url(
         ClientMethod='get_object',
         Params={
-            'Bucket': BUCKET_NAME,
+            'Bucket': os.getenv("BUCKET_NAME"),
             'Key': file_name
         },
         ExpiresIn=3600  # Срок действия ссылки в секундах (1 час)
@@ -394,7 +394,7 @@ def upload_file():
 
     # Отправка задачи в YMQ - очередь
     client.send_message(
-        QueueUrl=YMQ_QUEUE_URL,
+        QueueUrl=os.getenv("YMQ_QUEUE_URL"),
         MessageBody=file_name,
     )
     flash('Задача успешно добавлена в очередь', 'success')
