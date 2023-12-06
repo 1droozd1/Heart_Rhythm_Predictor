@@ -122,9 +122,9 @@ def process_queue():
                 pipline.run_pipeline()
 
                 figure_content = json.load(open(file_name + '.json', 'r'))
-                text_content = request_chatgpt(file_name + '.jpeg')
+                text_content = "request_chatgpt(file_name + '.jpeg')"
 
-                result_file = {"ecg": figure_content, "text":text_content}
+                result_file = {"ecg": figure_content, "text":'text_content'}
                 
                 with open(file_name+'1.json', 'w') as file:
                     json.dump(result_file, file)
@@ -251,7 +251,7 @@ def login():
 
         flash('Неверный логин или пароль', 'danger')
 
-    return render_template('login.html') # Отображение страницы входа
+    return render_template('index.html') # Отображение страницы входа
 
 # Маршрут и обработчик для страницы регистрации
 @app.route('/register', methods=['GET', 'POST'])
