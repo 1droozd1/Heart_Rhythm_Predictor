@@ -40,37 +40,27 @@ def request_chatgpt(image_path):
     completion = client_open_ai.chat.completions.create(
         model = "gpt-4-vision-preview",
         messages = [
-            {
-                "role": "system", 
-                 "content": "Привет, я - MedAI, специализированный на анализе ЭКГ. \
-             Пожалуйста, отправьте мне обработанный график ЭКГ с метками вашей AI-модели \
-             (например, стрелки и буквы, где пустота означает 'Норма'). Моя задача - предоставить \
-             анализ и рекомендации по этому графику [хотя бы примерный]. Я сосредоточусь на \
-             выявлении потенциальных проблем и дискомфорта, связанных с этим графиком, \
-             исключительно на основе представленных данных, без упоминания о необходимости \
-             дополнительной информации. На графике по оси X каждые 8 миллисекунд соответствуют\
-              одной временной единице. Все ответы будут предоставлены строго на русском языке."
-            },
-			{
+				{
                 "role": "user", 
      		    "content": 
                     [
                         {
-                            "type":"text",
-                            "text":"Опиши фотографию."
-			    	    },
+                        "type":"text",
+                        "text":"You are an cardiologist. Describe the image and provide commentart"
+					    },
                         {
-			    	    	"type":"image_url",
-                            "image_url": 
-                               {
-                                "url":f"data:image/jpeg;base64,{base64_image}",
-                                "detail": "low"
-			    	    		}
-			    	    }
+						"type":"image_url",
+                        "image_url": 
+                           {
+                            "url":f"data:image/jpeg;base64,{base64_image}",
+                            "detail": "low"
+							}
+					    }
                     ]
-			}
-		]
+				}
+		  ], max_tokens=600, temperature=0.6
 	)
+	
     print(completion)
     return completion.choices[0].message.content
 
