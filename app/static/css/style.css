@@ -31,11 +31,22 @@ h2{
   font-size: 15px;
   color: #fcfcfc;
 }
-.graph-description{
+.graph-description {
   font-family: 'Open Sans', sans-serif;
   font-size: 12px;
   color: #fcfcfc;
+  max-height: 200px; /* Устанавливаем максимальную высоту блока */
+  overflow: auto; /* Добавляем прокрутку, если текст не помещается */
 }
+
+.graph-description h3 {
+  font-size: 16px; /* Можете настроить размер заголовка по вашему усмотрению */
+}
+
+.graph-description p {
+  margin-top: 5px; /* Расстояние между заголовком и текстом */
+}
+
 p{
   color: #fcfcfc;
 }
@@ -47,8 +58,8 @@ p{
 }
 
 main {
-  max-width: 1000px;
-  margin: 0 auto;
+  max-width: 1200px;
+  margin: 200px 0 auto;
   padding: 20px;
 }
 
@@ -135,7 +146,7 @@ footer {
   clip: rect(0 0 0 0);
   height: 1px;
   margin: -1px;
-  overflow: hidden;
+  overflow: auto;
   padding: 0;
   position: absolute;
   width: 1px;

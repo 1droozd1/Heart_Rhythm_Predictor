@@ -180,13 +180,10 @@ def waiting_answers(file_name):
             },
             ExpiresIn=3600  # Срок действия ссылки в секундах (1 час)
         )
-        response = requests.get(presigned_url)
+        response = requests.head(presigned_url)  # Используем HEAD-запрос для проверки доступности ссылки
         if response.status_code == 200:
-            with open(file_name_result, 'wb') as file:
-                # Записываем содержимое ответа в файл
-                file.write(response.content)
-                break
-    return file_name_result
+            break
+    return True
 
 # Инициализация Flask приложения
 app = Flask(__name__)
@@ -463,7 +460,8 @@ def upload_file():
     )
     flash('Задача успешно добавлена в очередь', 'success')
 
-    return redirect(url_for('dashboard'))
+    if waiting_answers(file_name.split('.')[0]):
+        return redirect(url_for('dashboard'))
 
 # Маршрут для выхода
 @app.route('/logout')
