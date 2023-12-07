@@ -1,5 +1,6 @@
 import boto3
 from boto3.dynamodb.conditions import Attr
+from boto3.dynamodb.conditions import Key
 from werkzeug.security import generate_password_hash, check_password_hash
 USER_STORAGE_URL = 'https://docapi.serverless.yandexcloud.net/ru-central1/b1gtsqicrr868m6jmjbu/etnh2vnqifbkgugfvcoo'
 AWS_PUBLIC_KEY = 'YCAJEb70IUVPJLAFTDB7lKqVG'
@@ -34,18 +35,19 @@ users = database.Table('users')
 )'''
 
 '''scan = users.scan(
-    FilterExpression= Attr('username').contains('test_username')
+    FilterExpression= Attr('dr0ozd').contains('result_users_data_ekg')
 )'''
 
-# response = users.get_item(Key={'username': 'dr0ozd', 'data_type': 'profile'})['Item']['password_hash']
+'''response = users.get_item(Key={'username': 'dr0ozd', 'data_type': 'result_users_data_ekg'})
 
+print(response)'''
 
 # print(check_password_hash(response, '123456789'))
 
 # удаление всех элементов
 
-scan = users.scan()
-'''with users.batch_writer() as batch:
+'''scan = users.scan()
+with users.batch_writer() as batch:
     for each in scan['Items']:
         batch.delete_item(
             Key={
@@ -54,4 +56,15 @@ scan = users.scan()
             }
         )'''
 
-print(scan['Items'])
+#print(scan['Items'])
+
+#вывод всей базы
+
+response = users.query(
+    KeyConditionExpression=Key('username').eq('dr0ozd') & Key('data_type').eq('profile')
+)
+
+# Вывод результатов
+items = response.get('Items')
+for item in items:
+    print(item)

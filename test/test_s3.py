@@ -41,27 +41,24 @@ def waiting_answers(file_name):
                 file.write(response.content)
                 break
 
-waiting_answers('dr0ozd_2023-11-29-103848.json')
-'''
+
 # Получить объект
 presigned_url = s3.generate_presigned_url(
         ClientMethod='get_object',
         Params={
             'Bucket': BUCKET_NAME,
-            'Key': 'resut_dr0ozd_2023-11-29-103848.json'
+            'Key': 'result_dr0ozd_2023-12-07-192557.json'
         },
         ExpiresIn=3600  # Срок действия ссылки в секундах (1 час)
     )
 response = requests.get(presigned_url)
 # Проверяем, что запрос был успешным (код ответа 200)
 if response.status_code == 200:
+    print(1)
     # Открываем файл для записи в бинарном режиме
-    with open('result_dr0ozd_2023-11-29-103848.json', 'wb') as file:
+    with open('result_dr0ozd_2023-12-07-192557.json', 'wb') as file:
         # Записываем содержимое ответа в файл
         file.write(response.content)
-
-file_name = '/Users/dr0ozd/coding/ekg_analyzer/requirements.txt'  # Путь к файлу, который вы хотите загрузить
-object_name = 'requirements.txt'     # Имя, под которым файл будет сохранен в бакете
-
-s3.upload_file(file_name, BUCKET_NAME, object_name)
-'''
+    with open('result_dr0ozd_2023-12-07-192557.json', 'r') as file:
+        ecg_data = json.load(file)
+print(ecg_data['text'])

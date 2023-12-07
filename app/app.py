@@ -1,6 +1,6 @@
 import io, json
 import shutil
-from flask import Flask, flash, render_template, request, session, redirect, url_for
+from flask import Flask, flash, render_template, request, session, redirect, url_for, jsonify
 import requests
 import base64
 import torch
@@ -8,6 +8,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime
 import boto3, sys, zipfile, os, tempfile
+
+from boto3.dynamodb.conditions import Key
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 project_dir = os.path.dirname(script_dir)
@@ -76,7 +78,7 @@ def process_queue():
 
         if messages:
             for msg in messages:
-                profile_username = msg['Body'].split('_')[1]
+                profile_username = msg['Body'].split('_')[0]
                 file_name_s3_without_format = msg['Body'].split('.')[0]
 
                 # Ссылка для загрузки архива
@@ -122,9 +124,9 @@ def process_queue():
                 pipline.run_pipeline()
 
                 figure_content = json.load(open(file_name + '.json', 'r'))
-                text_content = "request_chatgpt(file_name + '.jpeg')"
+                text_content = request_chatgpt(file_name + '.jpeg')
 
-                result_file = {"ecg": figure_content, "text":'text_content'}
+                result_file = {"ecg": figure_content, "text": text_content}
                 
                 with open(file_name+'1.json', 'w') as file:
                     json.dump(result_file, file)
@@ -151,7 +153,7 @@ def process_queue():
                 USERS.put_item(
                     Item={
                         'username': profile_username,
-                        'data_type': 'result_users_data_ekg',
+                        'data_type': f'result_users_data_ekg_{file_name_s3_without_format}',
                         'file_name': object_name,
                         'ekg_profile_url': s3_url
                     }
@@ -227,6 +229,7 @@ queue_thread = threading.Thread(target=process_queue)
 queue_thread.daemon = True  # Поток будет работать как демон (завершится при завершении основного процесса)
 queue_thread.start()
 
+# Маршрут и обработчик для главной страницы
 @app.route('/')
 def index():
     return render_template('index.html') # Отображение главной страницы
@@ -295,10 +298,78 @@ def dashboard():
     if 'user' not in session:
         flash('Вы должны войти, чтобы получить доступ к панели управления', 'danger')
         return redirect(url_for('login'))
+    
+    username = session['user']
+    
+    response = USERS.query(
+        KeyConditionExpression=Key('username').eq(username) & Key('data_type').begins_with(f'result_users_data_ekg_{username}')
+    )
+    
+    items = response.get('Items', [])
+    
+    ecg_data_list = []
+    
+    for item in items:
+        presigned_url = item['ekg_profile_url']
+        file_name_result = item['file_name']
 
-    # Дополнительная логика панели управления
-    return render_template('dashboard.html')
+        presigned_url = s3.generate_presigned_url(
+            ClientMethod='get_object',
+            Params={
+                'Bucket': os.getenv("BUCKET_NAME"),
+                'Key': file_name_result
+            },
+            ExpiresIn=3600  # Срок действия ссылки в секундах (1 час)
+        )
+        response = requests.get(presigned_url)
+        
+        if response.status_code == 200:
+            with open(file_name_result, 'wb') as file:
+                # Записываем содержимое ответа в файл
+                file.write(response.content)
+        
+        with open(file_name_result, 'r') as file:
+            ecg_data = json.load(file)
+            ecg_data_list.append([ecg_data, file_name_result])
+            os.remove(file_name_result)
 
+    has_ecg_data=bool(ecg_data_list)
+
+    if has_ecg_data:
+        has_selected_ecg_data = True
+        selected_ecg_data = ecg_data_list[-1][0]
+    # Передаем данные в шаблон Flask
+    return render_template('dashboard.html', ecg_data_list=ecg_data_list, has_ecg_data=has_ecg_data, selected_ecg_data=selected_ecg_data, has_selected_ecg_data=has_selected_ecg_data)
+
+# Маршрут и обработчик для страницы просмотра выбранного ЭКГ файла
+@app.route('/dashboard/<filename>')
+def show_ecg(filename):
+    presigned_url = s3.generate_presigned_url(
+            ClientMethod='get_object',
+            Params={
+                'Bucket': os.getenv("BUCKET_NAME"),
+                'Key': filename
+            },
+            ExpiresIn=3600  # Срок действия ссылки в секундах (1 час)
+        )
+    response = requests.get(presigned_url)
+
+    # Ваш код загрузки данных и обработки
+    if response.status_code == 200:
+        has_selected_ecg_data = True
+        with open(filename, 'wb') as file:
+            # Записываем содержимое ответа в файл
+            file.write(response.content)
+    
+    with open(filename, 'r') as file:
+        selected_ecg_data = json.load(file)
+        os.remove(filename)
+    
+    if has_selected_ecg_data:
+        return jsonify(selected_ecg_data)
+    else:
+        return jsonify({})
+    
 # Функция для загрузки файла на Yandex S3
 def upload_to_s3(file, username_session):
     '''
@@ -314,10 +385,11 @@ def upload_to_s3(file, username_session):
 
 # Функция для добавления информации о файле в DynamoDB
 def add_file_info_to_dynamodb(username, file_name, s3_url):
+    file_name_without_format = file_name.split('.')[0]
     USERS.put_item(
         Item={
             'username': username,
-            'data_type': 'users_data_ekg',
+            'data_type': f'users_data_ekg_{file_name_without_format}',
             'file_name': file_name,
             'ekg_profile_url': s3_url
         }
@@ -392,16 +464,7 @@ def upload_file():
     )
     flash('Задача успешно добавлена в очередь', 'success')
 
-    return redirect(url_for('data_analysis', file_name=file_name.split('.')[0]))
-
-@app.route('/data_analysis/<file_name>')
-def data_analysis(file_name):
-    file_name_result = waiting_answers(file_name=file_name)
-    # Загрузка данных JSON
-    with open(file_name_result, 'r') as file:
-        ecg_data = json.load(file)
-
-    return render_template('data_analysis.html', ecg_data=ecg_data)
+    return redirect(url_for('dashboard'))
 
 # Маршрут для выхода
 @app.route('/logout')

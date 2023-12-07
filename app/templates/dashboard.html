@@ -4,26 +4,96 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Панель управления</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet">
+    <link rel="stylesheet" href="./static/css/style.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
-<body>
-    <header>
-        <h1>Панель управления</h1>
-    </header>
+<body class="align">
     <main>
+        <h1>Панель управления</h1>
         <section class="dashboard-section">
-            <h2>Добро пожаловать!</h2>
-            <p>Вы вошли в панель управления. Здесь вы можете выполнить различные действия.</p>
-            <!-- Добавляем кнопку для загрузки данных в S3 -->
-                <form method="POST" enctype="multipart/form-data" action="{{ url_for('upload_file') }}">
+            <div class="column-left">
+                <h2>Предыдущие результаты</h2>
+                <!-- Вывод предыдущих результатов (если есть) -->
+                {% if has_ecg_data == true %}
+                    <ul>
+                        {% for result in ecg_data_list %}
+                            <li><a href="javascript:void(0);" onclick="loadECG('{{ result[1] }}')">{{ result[1] }}</a></li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>Предыдущих результатов нет.</p>
+                {% endif %}
+            </div>
+            <div class="column-right">
+                <p>Добавьте файлы ЭКГ</p>
+                <!-- Улучшенная форма для загрузки данных в S3 -->
+                <form method="POST" enctype="multipart/form-data" action="{{ url_for('upload_file') }}" class="upload-form">
                     <input type="file" name="files[]" multiple>
-                    <button type="submit">Загрузить данные в S3</button>
+                    <button type="submit">Загрузить данные</button>
                 </form>
-            <a href="{{ url_for('logout') }}">Выйти</a>
+                <button onclick="window.location.href='{{ url_for('logout') }}'">Выйти</button>
+                
+                <!-- Блок для отображения графика ЭКГ или сообщения о загрузке -->
+                {% if has_selected_ecg_data == true %}
+                    <h2 class="text--center">График ЭКГ</h2>
+
+                    <div id="ecg-graph"></div>
+
+                    <div class="ecg-chart">
+                        <script type="text/javascript">
+                            var ecgData = {{ selected_ecg_data | tojson }};
+                            
+                            // Установите желаемую ширину и высоту графика в пикселях
+                            var width = 600; // Замените этот параметр на нужное значение
+                            var height = 400; // Замените этот параметр на нужное значение
+                            
+                            // Обновите параметры макета для увеличения размера графика
+                            ecgData.ecg.layout.width = width;
+                            ecgData.ecg.layout.height = height;
+                            
+                            Plotly.newPlot('ecg-graph', ecgData.ecg.data, ecgData.ecg.layout);
+                        </script>
+                    </div>
+                    <div class="graph-description">
+                        <h3>Анализ от доктора бота</h3>
+                        <p>{{ selected_ecg_data['text'] }}</p>
+                    </div>
+                {% else %}
+                    <div class="no-ecg-chart">
+                        <p>График ЭКГ не загружен. Загрузите файлы с данными для отображения графика.</p>
+                    </div>
+                {% endif %}
+            </div>
         </section>
+        <p class="text--center">&copy; 2023 DPP-company</p>
     </main>
-    <footer>
-        <p>&copy; 2023 DPP-company</p>
-    </footer>
 </body>
+
+<script>
+    function loadECG(filename) {
+        fetch('{{ url_for('show_ecg', filename='') }}' + filename)
+            .then(response => response.json())
+            .then(data => {
+                // Обновите график с новыми данными
+                updateGraph(data);
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function updateGraph(ecgData) {
+        var width = 600;
+        var height = 400;
+
+        ecgData.ecg.layout.width = width;
+        ecgData.ecg.layout.height = height;
+
+        Plotly.newPlot('ecg-graph', ecgData.ecg.data, ecgData.ecg.layout);
+
+        // Обновление блока с описанием
+        document.querySelector('.graph-description h3').innerText = 'Анализ от доктора бота';
+        document.querySelector('.graph-description p').innerText = ecgData.text;
+    }
+</script>
+
 </html>

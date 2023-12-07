@@ -8,16 +8,12 @@
 <body>
     <body class="align">
 
-        <h1>Регистрация</h1>
-
         <div class="grid">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">{{ message }}</div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
+            <div class="logo">
+                <img src="./static/logo.png" alt="Логотип">
+                <div class="logo-text-register">Heart Rhythm Predictor</div>
+                <div class="logo-text-register-reg">Регистрация</div>
+            </div>
             <form class="form login" method="POST">
                 <div class="form__field">
                     <label for="login__username"><svg class="icon"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#user"></use></svg><span class="hidden">Username</span></label>
