@@ -63,7 +63,6 @@ def request_chatgpt(image_path):
 		  ], max_tokens=600, temperature=0.6
 	)
 	
-    print(completion)
     return completion.choices[0].message.content
 
 def process_queue():

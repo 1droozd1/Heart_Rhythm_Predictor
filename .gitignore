@@ -1,4 +1,5 @@
 /venv
+/test
 .history
 __pycache__
 .env
