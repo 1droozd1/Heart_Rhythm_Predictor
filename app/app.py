@@ -330,6 +330,8 @@ def dashboard():
             os.remove(file_name_result)
 
     has_ecg_data=bool(ecg_data_list)
+    has_selected_ecg_data = False
+    selected_ecg_data = False
 
     if has_ecg_data:
         has_selected_ecg_data = True
