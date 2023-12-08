@@ -33,7 +33,7 @@ h1{
 }
 h2{
   font-family: 'Open Sans', sans-serif;
-  font-size: 15px;
+  font-size: 18px;
   color: #fcfcfc;
 }
 .graph-description {
@@ -55,6 +55,7 @@ h2{
 
 p{
   color: #fcfcfc;
+  font-size: 18px;
 }
 .logo-text-register-reg {
   font-family: 'Open Sans', sans-serif;
@@ -97,10 +98,11 @@ main {
   margin-right: 10px;
 }
 button {
-  background-color: #fbfbfb; /* Цвет фона */
-  color: rgb(0, 0, 0); /* Цвет текста */
-  padding: 6px 7px; /* Внутренний отступ */
-  font-size: 12px; /* Размер шрифта */
+  background-color: #ea4c88; /* Цвет фона */
+  color: #fbfbfb; /* Цвет текста */
+  padding: 14px 24px; /* Внутренний отступ */
+  font-size: 14px; /* Размер шрифта */
+  font-weight: bold;
   border: none; /* Убираем границу */
   border-radius: 5px;
   cursor: pointer;
@@ -319,4 +321,5 @@ p {
 
 .text--center {
   text-align: center;
+  font-size: 14px;
 }
