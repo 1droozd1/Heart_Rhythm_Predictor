@@ -21,8 +21,15 @@
   color: #fcfcfc;
   margin-bottom: 5px;
 }
+
+.bot-icon {
+  display: inline-block;
+  margin-top: 30px;
+}
+
 .bot-icon img {
-  width: 50px;
+  width:40px;
+  vertical-align: middle;
   height: auto;
 }
 
@@ -44,13 +51,14 @@ h2{
   overflow: auto; /* Добавляем прокрутку, если текст не помещается */
 }
 
-.graph-description h3 {
-  font-size: 16px; /* Можете настроить размер заголовка по вашему усмотрению */
+.graph-description span {
+  font-size: 18px;
+  font-weight: bold; /* Можете настроить размер заголовка по вашему усмотрению */
 }
 
 
 .graph-description p {
-  margin-top: 5px; /* Расстояние между заголовком и текстом */
+  margin-top: 14px; /* Расстояние между заголовком и текстом */
 }
 
 p{
