@@ -21,6 +21,11 @@
   color: #fcfcfc;
   margin-bottom: 5px;
 }
+.bot-icon img {
+  width: 50px;
+  height: auto;
+}
+
 h1{
   font-family: 'Open Sans', sans-serif;
   font-size: 34px;
@@ -42,6 +47,7 @@ h2{
 .graph-description h3 {
   font-size: 16px; /* Можете настроить размер заголовка по вашему усмотрению */
 }
+
 
 .graph-description p {
   margin-top: 5px; /* Расстояние между заголовком и текстом */

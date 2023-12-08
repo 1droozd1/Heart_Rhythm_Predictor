@@ -38,7 +38,7 @@
                 {% if has_selected_ecg_data == true %}
                     <h2 class="text--center">График ЭКГ</h2>
 
-                    <div id="ecg-graph"></div>
+                    <div id="ecg-graph" class="ecg-graph"></div>
 
                     <div class="ecg-chart">
                         <script type="text/javascript">
@@ -56,6 +56,9 @@
                         </script>
                     </div>
                     <div class="graph-description">
+                        <div class="bot-icon">
+                            <img src="./static/images/bot-icon.png" alt="Иконка бота">
+                        </div>
                         <h3>Анализ от доктора бота</h3>
                         <p>{{ selected_ecg_data['text'] }}</p>
                     </div>
