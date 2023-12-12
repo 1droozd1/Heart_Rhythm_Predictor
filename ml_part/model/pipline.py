@@ -12,6 +12,7 @@ import plotly.io as io
 script_dir = os.path.dirname(os.path.abspath(__file__))
 project_dir = os.path.dirname(script_dir)
 
+
 class EcgPipelineDataset1D(Dataset):
     def __init__(self, path, mode=128):
         super().__init__()
@@ -31,32 +32,35 @@ class EcgPipelineDataset1D(Dataset):
         self.peaks = self.peaks[mask]
 
     def __getitem__(self, index):
-
         images = []
         peaks = []
         pred_peaks = 0
         for i in range(index, index + self.mode):
-          peak_i = self.peaks[i]
-          left_i, right_i = peak_i - self.mode // 2, peak_i + self.mode // 2
-          img_i = self.signal[left_i:right_i]
-          img_i = img_i.reshape(1, -1)
-          images.append(img_i)
-          peaks.append(img_i.argmax() + pred_peaks)
-          pred_peaks += self.mode
+            peak_i = self.peaks[i]
+            left_i, right_i = peak_i - self.mode // 2, peak_i + self.mode // 2
+            img_i = self.signal[left_i:right_i]
+            img_i = img_i.reshape(1, -1)
+            images.append(img_i)
+            peaks.append(img_i.argmax() + pred_peaks)
+            pred_peaks += self.mode
 
         return {"image": torch.tensor(images), "peak": torch.tensor(peaks)}
 
     def get_dataloader(self, num_workers=4, batch_size=16, shuffle=True):
         data_loader = DataLoader(
-            self, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers,
+            self,
+            batch_size=batch_size,
+            shuffle=shuffle,
+            num_workers=num_workers,
         )
         return data_loader
 
     def __len__(self):
         return len(self.peaks)
 
+
 class BasePipeline:
-    def __init__(self, model, data_loader, path, beats = 30):
+    def __init__(self, model, data_loader, path, beats=30):
         self.path = path
         self.model = model
         self.beats = beats
@@ -72,74 +76,82 @@ class BasePipeline:
         pd_peaks = np.empty(0)
 
         with torch.no_grad():
-                batch = next(iter(self.pipeline_loader))
-                inputs = batch["image"]
-                inputs = torch.tensor(inputs)
-                inputs = inputs.to(self.DEVICE)
-                predictions = self.model(inputs)
+            batch = next(iter(self.pipeline_loader))
+            inputs = batch["image"]
+            inputs = torch.tensor(inputs)
+            inputs = inputs.to(self.DEVICE)
+            predictions = self.model(inputs)
 
-                classes = predictions.topk(k=1)[1].view(-1).cpu().numpy()
-                pd_class = np.concatenate((pd_class, classes))
-                pd_peaks = np.concatenate((pd_peaks, batch["peak"]))
+            classes = predictions.topk(k=1)[1].view(-1).cpu().numpy()
+            pd_class = np.concatenate((pd_class, classes))
+            pd_peaks = np.concatenate((pd_peaks, batch["peak"]))
 
-        pd_class = pd_class.astype(int)[:self.beats]
-        pd_peaks = pd_peaks.astype(int)[:self.beats]
+        pd_class = pd_class.astype(int)[: self.beats]
+        pd_peaks = pd_peaks.astype(int)[: self.beats]
 
-
-        inputs = inputs.cpu().numpy()[:self.beats]
-        inputs = inputs.squeeze(1).reshape(128*self.beats)
+        inputs = inputs.cpu().numpy()[: self.beats]
+        inputs = inputs.squeeze(1).reshape(128 * self.beats)
         annotations = []
         for i, (label, peak) in enumerate(zip(pd_class, pd_peaks)):
-                annotations.append(
-                    {
-                        "x": peak,
-                        "y": inputs[peak]+0.1,
-                        "text": self.mapper.get(str(label)),
-                        "xref": "x",
-                        "yref": "y",
-                        "showarrow": True,
-                        "arrowcolor": "black",
-                        "arrowhead": 1,
-                        "arrowsize": 2,
-                        "width": 75,
-                        "bgcolor": "#ffecf7",
-                        "bordercolor": "black",
-                        "borderwidth": 0.2
-                    },
-                )
-        
+            annotations.append(
+                {
+                    "x": peak,
+                    "y": inputs[peak] + 0.1,
+                    "text": self.mapper.get(str(label)),
+                    "xref": "x",
+                    "yref": "y",
+                    "showarrow": True,
+                    "arrowcolor": "black",
+                    "arrowhead": 1,
+                    "arrowsize": 2,
+                    "width": 75,
+                    "bgcolor": "#ffecf7",
+                    "bordercolor": "black",
+                    "borderwidth": 0.2,
+                },
+            )
+
         fig = go.Figure(
             data=go.Scatter(
                 x=list(range(len(inputs))),
                 y=inputs,
-                mode = 'lines',
-                line = dict(color='#361125', width=1.65)
+                mode="lines",
+                line=dict(color="#361125", width=1.65),
             ),
         )
 
-    
         fig.update_layout(
-            plot_bgcolor='#ffecf7',
-            xaxis = dict(showgrid=True,
-                         gridcolor='#f374b8',
-                         gridwidth=1, nticks = 30, zeroline = False),
-            yaxis=dict(showgrid=True,
-                       gridcolor='#f374b8', 
-                       gridwidth=1, nticks = 20, zeroline = False)
+            plot_bgcolor="#ffecf7",
+            xaxis=dict(
+                showgrid=True,
+                gridcolor="#f374b8",
+                gridwidth=1,
+                nticks=30,
+                zeroline=False,
+            ),
+            yaxis=dict(
+                showgrid=True,
+                gridcolor="#f374b8",
+                gridwidth=1,
+                nticks=20,
+                zeroline=False,
+            ),
         )
         fig.update_layout(
-            title=dict(text="ECG", font=dict(size=18, color='darkblue')),
-            xaxis_title=dict(text="Time", font=dict(size=16, color='darkblue')),
-            yaxis_title=dict(text="ECG Output Value", font=dict(size=16, color='darkblue')),
+            title=dict(text="ECG", font=dict(size=18, color="darkblue")),
+            xaxis_title=dict(text="Time", font=dict(size=16, color="darkblue")),
+            yaxis_title=dict(
+                text="ECG Output Value", font=dict(size=16, color="darkblue")
+            ),
             title_x=0.5,
             annotations=annotations,
-            height=400,  
-            width=800, 
+            height=400,
+            width=800,
         )
-        #os.makedirs('json')
+        # os.makedirs('json')
         fig.write_json(self.path + ".json")
 
-        #os.makedirs('images')
+        # os.makedirs('images')
         fig.write_image(self.path + ".jpeg")
-        
+
         return True

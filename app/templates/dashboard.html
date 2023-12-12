@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="./static/css/style.css">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
+
 <body class="align">
     <main>
         <h1>Панель управления</h1>
@@ -16,56 +18,57 @@
                 <h2>Предыдущие результаты</h2>
                 <!-- Вывод предыдущих результатов (если есть) -->
                 {% if has_ecg_data == true %}
-                    <ul>
-                        {% for result in ecg_data_list %}
-                            <li><a href="javascript:void(0);" onclick="loadECG('{{ result[1] }}')">{{ result[1] }}</a></li>
-                        {% endfor %}
-                    </ul>
+                <ul>
+                    {% for result in ecg_data_list %}
+                    <li><a href="javascript:void(0);" onclick="loadECG('{{ result[1] }}')">{{ result[1] }}</a></li>
+                    {% endfor %}
+                </ul>
                 {% else %}
-                    <p>Предыдущих результатов нет.</p>
+                <p>Предыдущих результатов нет.</p>
                 {% endif %}
             </div>
             <div class="column-right">
                 <p>Добавьте файлы ЭКГ</p>
                 <!-- Улучшенная форма для загрузки данных в S3 -->
-                <form method="POST" enctype="multipart/form-data" action="{{ url_for('upload_file') }}" class="upload-form">
+                <form method="POST" enctype="multipart/form-data" action="{{ url_for('upload_file') }}"
+                    class="upload-form">
                     <input type="file" name="files[]" multiple>
                     <button type="submit">Загрузить данные</button>
                 </form>
                 <button onclick="window.location.href='{{ url_for('logout') }}'">Выйти</button>
-                
+
                 <!-- Блок для отображения графика ЭКГ или сообщения о загрузке -->
                 {% if has_selected_ecg_data == true %}
-                    <h2 class="text--center">График ЭКГ</h2>
+                <h2 class="text--center">График ЭКГ</h2>
 
-                    <div id="ecg-graph" class="ecg-graph"></div>
+                <div id="ecg-graph" class="ecg-graph"></div>
 
-                    <div class="ecg-chart">
-                        <script type="text/javascript">
-                            var ecgData = {{ selected_ecg_data | tojson }};
-                            
-                            // Установите желаемую ширину и высоту графика в пикселях
-                            var width = 700; // Замените этот параметр на нужное значение
-                            var height = 450; // Замените этот параметр на нужное значение
-                            
-                            // Обновите параметры макета для увеличения размера графика
-                            ecgData.ecg.layout.width = width;
-                            ecgData.ecg.layout.height = height;
-                            
-                            Plotly.newPlot('ecg-graph', ecgData.ecg.data, ecgData.ecg.layout);
-                        </script>
+                <div class="ecg-chart">
+                    <script type="text/javascript">
+                        var ecgData = {{ selected_ecg_data | tojson }};
+
+                        // Установите желаемую ширину и высоту графика в пикселях
+                        var width = 700; // Замените этот параметр на нужное значение
+                        var height = 450; // Замените этот параметр на нужное значение
+
+                        // Обновите параметры макета для увеличения размера графика
+                        ecgData.ecg.layout.width = width;
+                        ecgData.ecg.layout.height = height;
+
+                        Plotly.newPlot('ecg-graph', ecgData.ecg.data, ecgData.ecg.layout);
+                    </script>
+                </div>
+                <div class="graph-description">
+                    <div class="bot-icon">
+                        <img src="./static/images/bot-icon.png" alt="Иконка бота">
+                        <span>Анализ от доктора бота</span>
                     </div>
-                    <div class="graph-description">
-                        <div class="bot-icon">
-                            <img src="./static/images/bot-icon.png" alt="Иконка бота">
-                            <span>Анализ от доктора бота</span>
-                        </div>
-                        <p>{{ selected_ecg_data['text'] }}</p>
-                    </div>
+                    <p>{{ selected_ecg_data['text'] }}</p>
+                </div>
                 {% else %}
-                    <div class="no-ecg-chart">
-                        <p>График ЭКГ не загружен. Загрузите файлы с данными для отображения графика.</p>
-                    </div>
+                <div class="no-ecg-chart">
+                    <p>График ЭКГ не загружен. Загрузите файлы с данными для отображения графика.</p>
+                </div>
                 {% endif %}
             </div>
         </section>

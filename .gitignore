@@ -4,3 +4,5 @@
 __pycache__
 .env
 /ml_part/model/__pycache__
+/example_data
+.DS_Store

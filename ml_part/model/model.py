@@ -1,5 +1,6 @@
 from torch import nn
 
+
 class ECGnet(nn.Module):
     def __init__(self, num_classes=6):
         super().__init__()
@@ -22,7 +23,7 @@ class ECGnet(nn.Module):
             nn.ReLU(inplace=True),
             nn.MaxPool1d(2),
             nn.Conv1d(32, 1, kernel_size=3, padding=1),
-            nn.Flatten()
+            nn.Flatten(),
         )
 
         self.features_down = nn.Sequential(
